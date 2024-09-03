@@ -1,27 +1,49 @@
-import { Button } from "@/components/ui/button";
+import { HeroSection } from "@/components/custom/HeroSection";
+import { flattenAttributes } from "@/lib/utils";
+import qs from "qs";
+
+const homePageQuery = qs.stringify({
+  populate: {
+    blocks: {
+      populate: {
+        image: {
+          fields: ["url", "alternativeText"]
+        },
+        link: {
+          populate: true
+        }
+      }   
+    }
+  },
+});
 
 async function getStrapiData(path: string) {
   const baseUrl = 'http://localhost:1337';
+
+  const url = new URL(path, baseUrl);
+  url.search = homePageQuery;
+
+  console.log(url.href);
+
   try {
-    const response = await fetch(baseUrl + path);
+    const response = await fetch(url.href, { cache: 'no-store' });
     const data = await response.json();
-    return data;
+    const flattenedData = flattenAttributes(data);
+    console.dir(flattenedData, { depth: null });
+    return flattenedData;
   } catch (error) {
     console.log(error);
   }
 }
 
 export default async function Home() {
-  const strapiData = await getStrapiData('/api/home-page');
+  const strapiData = await getStrapiData("/api/home-page");
 
-  const { id, attributes } = strapiData.data;
-  const { title, description } = attributes;
+  const { title, description, blocks } = strapiData;
 
   return (
-    <main className="container mx-auto py-6">
-      <h1 className=""> {title}</h1>
-      <p className="">{description}</p>
-      <Button>Test {id}</Button>
+    <main>
+      <HeroSection data={blocks[0]} />
     </main>
   );
 }
