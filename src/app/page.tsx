@@ -1,27 +1,25 @@
-import { Button } from "@/components/ui/button";
+import { getHomePageData } from "@/data/loader";
+import { FeatureSection } from "@/components/custom/FeaturesSection";
+import { HeroSection } from "@/components/custom/HeroSection";
 
-async function getStrapiData(path: string) {
-  const baseUrl = 'http://localhost:1337';
-  try {
-    const response = await fetch(baseUrl + path);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.log(error);
+function blockRenderer(block: any) {
+  switch (block.__component) {
+    case "layout.her-o-section":
+      return <HeroSection key={block.id} data={block} />;
+    case "layout.features-section":
+      return <FeatureSection key={block.id} data={block} />;
+    default:
+      return null;
   }
 }
-
+ 
 export default async function Home() {
-  const strapiData = await getStrapiData('/api/home-page');
-
-  const { id, attributes } = strapiData.data;
-  const { title, description } = attributes;
+  const { blocks } = await getHomePageData();
+  if(!blocks) return <div>No Blocks found</div>;
 
   return (
-    <main className="container mx-auto py-6">
-      <h1 className=""> {title}</h1>
-      <p className="">{description}</p>
-      <Button>Test {id}</Button>
+    <main>
+      {blocks.map((block: any) => blockRenderer(block))}
     </main>
   );
 }
